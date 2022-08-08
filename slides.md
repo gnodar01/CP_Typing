@@ -20,7 +20,7 @@ Type Definition:
   class UserId(int):
       ...
   ```
-  * all instances of UserId form a type
+  * all instances of `UserId` form a type
 * More complex, composite types
   * `String`: a subset of `List` such that all elements are of type `Char`
   * `Number`: a union of `Integer`, `Float`, and `Complex`
@@ -78,8 +78,40 @@ b: Integer
 
 ---
 
+# Types vs Classes
+
+<br>
+
+`Class` is a dynamic, runtime concept
+* classes are object factories
+* returned by `type(obj)` builtin
+
+Types are static, and used by static type checkers outside of runtime
+
+Classes define types, but static types not to be confused with runtime classes
+* `int` is a class and type
+* `UserId` is a class and type
+* `Union[str, int]` is a type, but not a class
+
+---
+
 # Python Typing
-Type hints through animations
+
+Brief history
+
+Jukka Lehtosalo - 2010, PhD research in unifying dynamic and statically typed languages
+* Gradual growth from untyped prototype to statically typed product
+* Converted research to mypy - an optional static type checker for Python
+* Introduced at PyCon 2013, gaining interest of Guido van Rossum
+* Joined Dropbox, which implemented mypy on a 4 million+ line codebase
+
+Introduced in 2015: Python 3.5, PEP-484
+* Type hinting (type annotation)
+* Typing module
+
+Incorporates Gradual Typing
+* Formal work by Jeremy Siek and Walid Taha in 2006
+* allows parts of a program to be dynamically typed and other parts to be statically typed
 
 ---
 
@@ -93,6 +125,9 @@ No runtime implications of types
 Types never required
 * hence type *hints*
 
+Dynamic **and** static typing
+* annotate only part of a program
+
 No "overhaul" necessary
 
 Type as you go, when desired, only to aid readability and understanding
@@ -105,7 +140,7 @@ Type as you go, when desired, only to aid readability and understanding
 Type `T1` is *consistent with* type `T2` IFF `T1` is a subtype of `T2`
 (but not the other way around)
 
-The type `Any` is *consistent with* every type
+Type `Any` is *consistent with* every type
 (but `Any` is not a subtype of `Any`)
 
 Every type is *consistent with* `Any`
@@ -115,6 +150,38 @@ Every type is *consistent with* `Any`
 
 Therefore, `Any` is the set of all values, and the set of all functions on those values
 * Both top and bottom of type hierarchy
+* Dynamic type
+* Everything is `Any` unless explicitly annotated otherwise
+
+---
+
+# Python Typing
+
+Building blocks
+
+`Any` is consistent with every type, and vice versa
+
+`Union[t1, t2, ...]`: all types that are subtypes of `t1`, `t2`, ...
+* `Union[int, str]` is a subtype of `Union[int, float, str]`
+* If `ti` is already a `Union`, it is flattened
+* Order doesn't matter
+* `Union[t1] == t1`
+
+`Optional[t1] == Union[t1, None]`
+
+`Tuple[t1, t2, ..., tn]`: tuple where first element is `t1`, second `t2`, ...
+* `Tuple[u1, u2, ..., um]` is a subtype IFF `n == m` and `u1` is a subtype of `t1`, `u2`, of `t2`, ...
+* variadic homogeneous tuple: `Tuple[t1, ...]` (literal ellipse)
+
+`Callable[[t1, t2, ..., tn], tr]`: function with positional args `t1` etc., and return type `tr`
+* argument list unchecked with `Callable[..., tr]` (literal ellipse)
+
+<style>
+
+p {
+    margin-bottom: 2px;
+}
+</style>
 
 ---
 
