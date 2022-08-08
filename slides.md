@@ -75,6 +75,7 @@ b: Integer
 * set of values of `List[Int]` are contained in the set of values of `List[Float]`
 * set of functions of `List[Float]` are **NOT** contained in the set of functions of `List[Int]`
   * e.g. `append_float()`
+* *invariance* relationship
 
 ---
 
@@ -111,7 +112,7 @@ Introduced in 2015: Python 3.5, PEP-484
 
 Incorporates Gradual Typing
 * Formal work by Jeremy Siek and Walid Taha in 2006
-* allows parts of a program to be dynamically typed and other parts to be statically typed
+* Allows parts of a program to be dynamically typed and other parts to be statically typed
 
 ---
 
@@ -119,7 +120,7 @@ Incorporates Gradual Typing
 
 <br>
 
-No runtime implications of types
+No runtime implications of types*
 * hence type *annotations*
 
 Types never required
@@ -163,6 +164,7 @@ Building blocks
 
 `Union[t1, t2, ...]`: all types that are subtypes of `t1`, `t2`, ...
 * `Union[int, str]` is a subtype of `Union[int, float, str]`
+    * *covariance* relationship
 * If `ti` is already a `Union`, it is flattened
 * Order doesn't matter
 * `Union[t1] == t1`
@@ -173,76 +175,84 @@ Building blocks
 * `Tuple[u1, u2, ..., um]` is a subtype IFF `n == m` and `u1` is a subtype of `t1`, `u2`, of `t2`, ...
 * variadic homogeneous tuple: `Tuple[t1, ...]` (literal ellipse)
 
+---
+
+# Python Typing
+
+Building blocks
+
+
 `Callable[[t1, t2, ..., tn], tr]`: function with positional args `t1` etc., and return type `tr`
 * argument list unchecked with `Callable[..., tr]` (literal ellipse)
-
-<style>
-
-p {
-    margin-bottom: 2px;
-}
-</style>
+* `Callable[[], int]` is a subtype of `Callable[[], float]`
+    * *covariance* relationship in return type
+* `Callable[[float], None]` is a subtype of `Callable[[int], None]`
+    * *contravariance* relationship in args
+    * counterintuitive, but true
 
 ---
 
-# Duck Typing
+# Python Typing
 
-```python
-def mult_add(x, y, b):
-	return x * y + b
-```
+Building blocks
 
-Type of `x`, `y`, and `b` not important, so long as:
-* `x` supports multiplication with `y`, via `__mul__`
-* result of `x*y` supports addition with `b`, via `__add__`
-
-```python
-class Prop:
-    def __init__(self, s_val):
-        self.s_val = s_val
-    def __mul__(self, prop_other):
-        return Prop( self.s_val * len(prop_other.s_val) )
-    def __add__(self, prop_other):
-        return Prop( self.s_val + prop_other.s_val )
-    def __repr__(self):
-        return self.s_val
-
-mult_add( Prop("foo"), Prop("bar"), Prop("baz") )
-> foofoofoobaz
-
-```
+`Intersection[t1, t2, ...]`: Types that are a subtype of each of `t1`, etc.
+* Order doesn't matter
+* Nested intersections flattened
+* Intersection of few types superset of intersection of more types
+  * e.g. `Intersection[int, str]` superset of `Intersection[int, float, str]`
+* `Intersection[t1]` is just `t1`
+* `Intersection[t1, t2, Any] == Intersection[t1, t2]`
 
 ---
 
-# Static Duck Typing
+# Python Typing
+
+Generic types
+
+Generic type constructor
+* Like a function for types
+* Takes a type, and "returns" a new type
+
+---
+
+# Python Typing
+
+Generic types
 
 ```python
-from typing import Protocol
+def add(x, y):
+    return x + y
 
-class MULT_ADD(Protocol):
-    def __mul__(self, other):
-        ...
-    def __add__(self, other):
-        ...
-
-class Prop:
-    def __init__(self, s_val):
-        self.s_val = s_val
-    def __mul__(self, prop_other):
-        return Prop( self.s_val * len(prop_other.s_val) )
-    def __add__(self, prop_other):
-        return Prop( self.s_val + prop_other )
-    def __repr__(self):
-        return self.s_val
-        
-def mult_add(x: MULT_ADD, y: MULT_ADD, b: MULT_ADD):
-    return x * y + b
-    
-mult_add(Prop("foo"), Prop("bar"), Prop("baz")) # okay
-
-mult_add(2, 3.0, 2.0+2.0j) # also okay
-
+add(1,2) == 3
+add('1', '2') == '12'
+add(1.1, 2.2) == 3.3
 ```
+
+`add` has 2 parameters, that may be of type `int`, `float`, or `str`, so long as both are the *same* type
+
+---
+
+# Python Typing
+
+Generic types
+
+```python
+T = TypeVar('T', int, float, str)
+
+def add(x: T, y: T) -> T:
+    return x + y
+
+add(1,2) # ok
+add('1', '2') # ok
+add(1.1, 2.2) # ok
+add(1, 2.2) # ok
+add(1, '2') # not ok - fails type check
+```
+
+For `add(1, 2.2)`, `1` is of type `int`, which is a subtype of `float`, so the generic `T` is calculated to be `float`
+
+For `add(1, '2')`, the only type that the two args have in common is `object` which is not listed in our constraints of `int, float, str`
 
 ---
 
@@ -298,18 +308,6 @@ Start with atomic types: `str`, `int`, `bool`, `float`, `None`, ...
 
 `def is_valid_path(path: str) -> bool:`
 
----
-
-# Typing Module
-
-```python
-from typing import List
-
-def words_to_ascii(words: List[str]) -> List[List[int]]:
-    return [
-        [ord(c) for c in word] for word in words
-    ]
-```
 
 ---
 
@@ -317,18 +315,10 @@ def words_to_ascii(words: List[str]) -> List[List[int]]:
 
 <br>
 
-`from typing import Dict, Set, Tuple, Generator, Iterable, Type, Any`
+`from typing import Any, Union, Callable, TypeVar, Generic, Optional`
 
----
+`from typing import Dict, Set, Tuple, Generator, Iterable, Type, Mapping, Sequence`
 
-# What can be typed
-
-<br>
-
-Pretty much everything...
-* function arguments
-* function return types
-* variable definitions
 
 ---
 
@@ -457,10 +447,133 @@ class UserId:
 # elsewhere
 def generate_dummy_user():
     user_name = "user1"
-    user_id = UserId(123
+    user_id = UserId(123)
 ```
 
 `UserId` is still a subtype of `int`, but now has additional behaviour
+
+---
+
+# Defining Types
+
+```python
+from typing import NewType
+
+UserId = NewType('UserId', int)
+
+combinedId = UserId(123) + UserId(456) # resulting type int
+combinedId = UserId( UserId(123) + UserId(456) ) # resulting type UserId
+```
+
+---
+
+# Type Alias vs Type Definition
+
+<br>
+
+`Alias = Original` is an equivilance relationship
+
+`Derived = NewType('Derived', Original)` specifies that `Derived` is a subtype of `Original`
+* `variable: Derived = ...` means `variable` cannot be `int`, it must be `Derived`
+* `variable: int = ...` means `variable` can be `int` or `Derived`
+
+---
+
+# Generics
+
+Generic function
+
+```python
+from typing import Sequence
+
+T = TypeVar('T')
+
+def first(l: Sequence[T]) -> T:
+    return l[0]
+```
+
+---
+
+# Generics
+
+User-defined generic types
+
+```python
+from typing import Generic, TypeVar, Optional
+
+T = TypeVar('T')
+S = TypeVar('S', str, int)
+
+class DataStore(Generic[T, S]):
+
+    def put(self, data: T) -> S:
+        ...
+    def get(self, id: S) -> T:
+        ...
+
+ds: DataStore[str, int] = DataStore()
+```
+
+---
+
+# Duck Typing
+
+```python
+def mult_add(x, y, b):
+    return x * y + b
+```
+
+Type of `x`, `y`, and `b` not important, so long as:
+* `x` supports multiplication with `y`, via `__mul__`
+* result of `x * y` supports addition with `b`, via `__add__`
+
+```python
+class Prop:
+    def __init__(self, s_val):
+        self.s_val = s_val
+    def __mul__(self, prop_other):
+        return Prop( self.s_val * len(prop_other.s_val) )
+    def __add__(self, prop_other):
+        return Prop( self.s_val + prop_other.s_val )
+    def __repr__(self):
+        return self.s_val
+
+mult_add( Prop("foo"), Prop("bar"), Prop("baz") )
+> foofoofoobaz
+
+```
+
+---
+
+# Static Duck Typing
+
+```python
+from typing import Protocol
+
+class MULT_ADD(Protocol):
+    def __mul__(self, other):
+        ...
+    def __add__(self, other):
+        ...
+
+class Prop:
+    def __init__(self, s_val):
+        self.s_val = s_val
+    def __mul__(self, prop_other):
+        return Prop( self.s_val * len(prop_other.s_val) )
+    def __add__(self, prop_other):
+        return Prop( self.s_val + prop_other )
+    def __repr__(self):
+        return self.s_val
+        
+def mult_add(x: MULT_ADD, y: MULT_ADD, b: MULT_ADD):
+    return x * y + b
+    
+mult_add(Prop("foo"), Prop("bar"), Prop("baz")) # okay
+
+mult_add(2, 3.0, 2.0+2.0j) # also okay
+
+```
 
 ---
 
@@ -468,15 +581,34 @@ def generate_dummy_user():
 
 <br>
 
+Initial cleanup
+* We already have type errors
+  * Mostly related to `None` and `Unknown`
+  * Some ignorable: untyped external libraries (e.g. wxPython)
+* Should be the only "painful" part (for me)
+
 Add types when desired, to help yourself understand the code
-
-Organic growth
-
-Focused manual efforts
-
-Static and dynamic type inference
+* Goal is not eventually reaching 100% type coverage
 
 Gradually increasing strictness requirements for new code
+
+Eventually add type checking to CI
+
+---
+
+# Typed CP
+
+Untyped
+
+<video src="/screen_recordings/pre_typing.mov" controls></video>
+
+---
+
+# Typed CP
+
+Typed
+
+<video src="/screen_recordings/post_typing.mov" controls></video>
 
 ---
 
@@ -486,6 +618,7 @@ Type checkers
 * [mypy](http://mypy-lang.org/)
     * [mypy playground](https://mypy-play.net/)
 * [pytype](https://google.github.io/pytype/) by Google
+    * Type annotations generation
 * [pyre-check](https://pyre-check.org/) by Facebook
 * [pyright](https://github.com/microsoft/pyright) used in vscode
 * [pylint](https://pylint.pycqa.org/en/latest/) - static code analysis
@@ -497,12 +630,13 @@ Stub files for type definitions
 
 # Resources
 
+* [PEP-3107](https://peps.python.org/pep-3107/): Function Annotations
 * [PEP-483](https://peps.python.org/pep-0483/): The Theory of Type Hints
 * [PEP-484](https://peps.python.org/pep-0484/): Type Hints
 * [PEP-544](https://peps.python.org/pep-0544/): Protocols: Structural subtyping (static duck typing)
 * [Other relevant PEPs](https://docs.python.org/3/library/typing.html#relevant-peps-1)
 * [Dropbox - our journey to type checking 4 million lines of Python](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
 * [Gradual Typing](https://wphomes.soic.indiana.edu/jsiek/what-is-gradual-typing/)
-
+* [How to enable Python type checking in VSCode](https://www.emmanuelgautier.com/blog/enable-vscode-python-type-checking)
 
 
