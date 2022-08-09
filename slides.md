@@ -1,6 +1,6 @@
 # Typed CellProfiler
 
-Incremental type hints in CellProfiler
+Incremental type annotations in CellProfiler
 
 ---
 
@@ -8,11 +8,11 @@ Incremental type hints in CellProfiler
 
 a set of values, and a set of functions that can be applied to those values
 
-Type Definition:
+Defining Types:
 * Specify full set of allowable values
   * `Bool: True | False`
 * Specify functions which can be used with variables of the type
-  * `Sized`: all objects that have a `__len__` method
+  * `Sized`: all objects that have a `__len__` method, eg:
     * `[1, 2, 3]`
     * `"abc"`
 * Class definition
@@ -37,9 +37,11 @@ ul { font-size: 15px; }
 
 Every Type is a Subtype of itself
 
-The set of values becomes smaller in the process of subtyping
+The set of values of a subtype is a subset of its supertype's set of values
+* **The set of values becomes smaller** in the process of subtyping, or stays the same size
 
-The set of functions becomes larger in the process of subtyping
+The set of functions of a subtype is a superset of its supertype's set of functions
+* **The set of functions becomes larger** in the process of subtyping, or stays the same size
 
 ---
 
@@ -74,7 +76,7 @@ b: Integer
 `List[Int]` is **NOT** a subtype of `List[Float]`
 * set of values of `List[Int]` are contained in the set of values of `List[Float]`
 * set of functions of `List[Float]` are **NOT** contained in the set of functions of `List[Int]`
-  * e.g. `append_float()`
+  * `append_float()`
 * *invariance* relationship
 
 ---
@@ -138,7 +140,7 @@ Type as you go, when desired, only to aid readability and understanding
 # Gradual Typing
 *Consistent with...* relationship
 
-Type `T1` is *consistent with* type `T2` IFF `T1` is a subtype of `T2`
+Type `T1` is *consistent with* type `T2` if `T1` is a subtype of `T2`
 (but not the other way around)
 
 Type `Any` is *consistent with* every type
@@ -151,8 +153,8 @@ Every type is *consistent with* `Any`
 
 Therefore, `Any` is the set of all values, and the set of all functions on those values
 * Both top and bottom of type hierarchy
-* Dynamic type
-* Everything is `Any` unless explicitly annotated otherwise
+* *Dynamic type*
+* Most things are `Any` unless explicitly annotated otherwise
 
 ---
 
@@ -516,6 +518,82 @@ ds: DataStore[str, int] = DataStore()
 
 ---
 
+# Structural Subtyping
+
+<br>
+
+[PEP-544](https://peps.python.org/pep-0544/) introduced *structural* typing as opposed to *nominative* typing
+
+*nominative*: `B` is declared to be a subclass of `A`
+
+<div v-click-hide>
+
+```python
+class A:
+    def some_method(self) -> int:
+        ...
+
+class B(A):
+    def some_method(self) -> int:
+        return 0
+
+def call_some_method(o: A) -> int:
+    return o.some_method()
+
+call_some_method( B() )
+```
+
+</div>
+
+<div v-after>
+
+*structural*: `B` looks and acts like `A`, and is therefore a subclass of `A`
+  * also known as *static duck typing*
+
+```python
+class A:
+    def some_method(self) -> int:
+        ...
+
+class B:
+    def some_method(self) -> int:
+        return 0
+
+def call_some_method(o: A) -> int:
+    return o.some_method()
+
+call_some_method( B() )
+```
+</div>
+
+<style>
+.slidev-vclick-hidden-explicitly {
+    display:  none;
+}
+</style>
+
+---
+
+# Protocols
+
+<br>
+
+Custom protocols through [Protocol](https://docs.python.org/3.8/library/typing.html#typing.Protocol) Class
+* terribly named
+
+<br>
+
+<v-click>
+
+1) define a class that specifies a set of methods (a "protocol")
+2) which defines a type
+3) any class with that same set of methods (same "protocol") is considered a subtype
+4) without having to declare itself as a subtype, explicitly
+
+</v-click>
+
+---
+
 # Duck Typing
 
 ```python
@@ -563,15 +641,13 @@ class Prop:
         return Prop( self.s_val * len(prop_other.s_val) )
     def __add__(self, prop_other):
         return Prop( self.s_val + prop_other )
-    def __repr__(self):
-        return self.s_val
         
 def mult_add(x: MULT_ADD, y: MULT_ADD, b: MULT_ADD):
     return x * y + b
     
 mult_add(Prop("foo"), Prop("bar"), Prop("baz")) # okay
 
-mult_add(2, 3.0, 2.0+2.0j) # also okay
+mult_add(2, 3.0, 4.5+6.7j) # also okay
 
 ```
 
