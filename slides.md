@@ -206,11 +206,33 @@ Type checkers built into popular IDEs
 
 ---
 
+# Primitave Types
+
+Simple types
+
+Start with atomic types: `str`, `int`, `bool`, `float`, `None`, ...
+
+`def is_valid_path(path: str) -> bool:`
+
+---
+
+# Typing Module
+
+Runtime support for type hints
+
+```python
+from typing import Any, Union, Optional, Tuple, Callable, Intersection
+```
+
+---
+
 # Python Typing
 
 Building blocks
 
 `Any` is consistent with every type, and vice versa
+
+`Optional[t1] == Union[t1, None]`
 
 `Union[t1, t2, ...]`: all types that are subtypes of `t1`, `t2`, ...
 * `Union[int, str]` is a subtype of `Union[int, float, str]`
@@ -218,8 +240,6 @@ Building blocks
 * If `ti` is already a `Union`, it is flattened
 * Order doesn't matter
 * `Union[t1] == t1`
-
-`Optional[t1] == Union[t1, None]`
 
 `Tuple[t1, t2, ..., tn]`: tuple where first element is `t1`, second `t2`, ...
 * `Tuple[u1, u2, ..., um]` is a subtype IFF `n == m` and `u1` is a subtype of `t1`, `u2`, of `t2`, ...
@@ -230,7 +250,6 @@ Building blocks
 # Python Typing
 
 Building blocks
-
 
 `Callable[[t1, t2, ..., tn], tr]`: function with positional args `t1` etc., and return type `tr`
 * argument list unchecked with `Callable[..., tr]` (literal ellipse)
@@ -253,28 +272,6 @@ Building blocks
   * e.g. `Intersection[int, str]` superset of `Intersection[int, float, str]`
 * `Intersection[t1]` is just `t1`
 * `Intersection[t1, t2, Any] == Intersection[t1, t2]`
-
----
-
-# Simple Types
-
-<br>
-
-Start with atomic types: `str`, `int`, `bool`, `float`, `None`, ...
-
-`def is_valid_path(path: str) -> bool:`
-
-
----
-
-# Typing Module
-
-<br>
-
-`from typing import Any, Union, Callable, TypeVar, Generic, Optional`
-
-`from typing import Dict, Set, Tuple, Generator, Iterable, Type, Mapping, Sequence`
-
 
 ---
 
@@ -577,17 +574,23 @@ Series of overloads must be followed by exactly one implementation
 
 ---
 
-# Structural Subtyping
+# Nominative vs Structural Subtyping
 
 <br>
 
 [PEP-544](https://peps.python.org/pep-0544/) introduced *structural* typing as opposed to *nominative* typing
 
-*nominative* (by name): `B` is declared to be a subclass of `A`
+---
 
-<div v-click-hide>
+# Nominative Subtyping
 
-```python
+Subtyping by name
+
+In *nominative* subtyping, `B` is declared to be a subclass of `A`
+
+<v-click>
+
+```python {all|1,5|9,12}
 class A:
     def some_method(self) -> int:
         ...
@@ -602,14 +605,20 @@ def call_some_method(o: A) -> int:
 call_some_method( B() )
 ```
 
-</div>
+</v-click>
 
-<div v-after>
+---
 
-*structural* (by shape): `B` looks and acts like `A`, and is therefore a subclass of `A`
+# Structural Subtyping
+
+Subtyping by shape
+
+In *structural* subtyping, `B` looks and acts like `A`, and is therefore a subclass of `A`
   * also known as *static duck typing*
 
-```python
+<v-click>
+
+```python {all|1,5|9,12}
 class A:
     def some_method(self) -> int:
         ...
@@ -623,13 +632,8 @@ def call_some_method(o: A) -> int:
 
 call_some_method( B() ) # python type checker would complain, B is not A
 ```
-</div>
 
-<style>
-.slidev-vclick-hidden-explicitly {
-    display:  none;
-}
-</style>
+</v-click>
 
 ---
 
@@ -657,7 +661,7 @@ Custom protocols through [Protocol](https://docs.python.org/3.8/library/typing.h
 
 Structural subtyping enabled
 
-```python {all|1,3,7,11,14}
+```python {all|1,3,7|11,14}
 from typing import Protocol
 
 class A(Protocol):
@@ -687,7 +691,7 @@ Type of `x`, `y`, and `b` not important, so long as:
 * `x` supports multiplication with `y`, via `__mul__`
 * result of `x * y` supports addition with `b`, via `__add__`
 
-```python
+```python {all|4,6|11}
 class Prop:
     def __init__(self, s_val):
         self.s_val = s_val
@@ -699,7 +703,7 @@ class Prop:
         return self.s_val
 
 mult_add( Prop("foo"), Prop("bar"), Prop("baz") )
-> foofoofoobaz
+# > foofoofoobaz
 
 ```
 
@@ -707,7 +711,7 @@ mult_add( Prop("foo"), Prop("bar"), Prop("baz") )
 
 # Static Duck Typing
 
-```python
+```python {all|3,4,6|9,12,14|17|20,22}
 from typing import Protocol
 
 class MULT_ADD(Protocol):
