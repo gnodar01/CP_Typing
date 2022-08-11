@@ -6,7 +6,7 @@ Incremental type annotations in CellProfiler
 
 # Types
 
-a set of values, and a set of functions that can be applied to those values
+A set of values, and a set of functions that can be applied to those values
 
 Defining Types:
 * Specify full set of allowable values
@@ -22,8 +22,8 @@ Defining Types:
   ```
   * all instances of `UserId` form a type
 * More complex, composite types
-  * `String`: a subset of `List` such that all elements are of type `Char`
-  * `Number`: a union of `Integer`, `Float`, and `Complex`
+  * `String`: a subset of `List` such that all elements are of type `Char`, ie `List[Char]`
+  * `Version`: a union of `Integer`, and `String`
 
 <style>
 ul { font-size: 15px; }
@@ -158,6 +158,50 @@ Therefore, `Any` is the set of all values, and the set of all functions on those
 
 ---
 
+# Motivation
+
+<br>
+
+Python is dynamically typed on purpose
+* Great for notebooks, scripts, small scale applications
+* Increasingly bad at scale
+* Great for single developer projects
+* Bad for collaborative projects
+
+---
+
+# Motivation
+
+<br>
+
+A type checker will find many subtle (and not so subtle) bugs
+* e.g. forgetting to handle a `None` return value
+
+---
+
+# Motivation
+
+<br>
+
+Increased readability
+* New contributors more easily able to understand what a method does, and how to reuse it
+* Refactoring is easier
+
+---
+
+# Motivation
+
+<br>
+
+Type checking much faster than testing (for correct types)
+
+Type checkers built into popular IDEs
+* Code completion
+* Error highlighting
+* Go to definition
+
+---
+
 # Python Typing
 
 Building blocks
@@ -205,100 +249,6 @@ Building blocks
   * e.g. `Intersection[int, str]` superset of `Intersection[int, float, str]`
 * `Intersection[t1]` is just `t1`
 * `Intersection[t1, t2, Any] == Intersection[t1, t2]`
-
----
-
-# Python Typing
-
-Generic types
-
-Generic type constructor
-* Like a function for types
-* Takes a type, and "returns" a new type
-
----
-
-# Python Typing
-
-Generic types
-
-```python
-def add(x, y):
-    return x + y
-
-add(1,2) == 3
-add('1', '2') == '12'
-add(1.1, 2.2) == 3.3
-```
-
-`add` has 2 parameters, that may be of type `int`, `float`, or `str`, so long as both are the *same* type
-
----
-
-# Python Typing
-
-Generic types
-
-```python
-T = TypeVar('T', int, float, str)
-
-def add(x: T, y: T) -> T:
-    return x + y
-
-add(1,2) # ok
-add('1', '2') # ok
-add(1.1, 2.2) # ok
-add(1, 2.2) # ok
-add(1, '2') # not ok - fails type check
-```
-
-For `add(1, 2.2)`, `1` is of type `int`, which is a subtype of `float`, so the generic `T` is calculated to be `float`
-
-For `add(1, '2')`, the only type that the two args have in common is `object` which is not listed in our constraints of `int, float, str`
-
----
-
-# Motivation
-
-<br>
-
-Python is dynamically typed on purpose
-* Great for notebooks, scripts, small scale applications
-* Increasingly bad at scale
-* Great for single developer projects
-* Bad for collaborative projects
-
----
-
-# Motivation
-
-<br>
-
-A type checker will find many subtle (and not so subtle) bugs
-* e.g. forgetting to handle a `None` return value
-
----
-
-# Motivation
-
-<br>
-
-Increased readability
-* New contributors more easily able to understand what a method does, and how to reuse it
-* Refactoring is easier
-
----
-
-# Motivation
-
-<br>
-
-Type checking much faster than testing (for correct types)
-
-Type checkers built into popular IDEs
-* Code completion
-* Error highlighting
-* Go to definition
 
 ---
 
@@ -370,6 +320,36 @@ def get_user_info(user: User):
     user_id: int = user.id
     ...
 ```
+
+---
+
+# Enforced Constants
+
+```python
+from typing import Final
+
+MY_ID: Final[int] = 123
+
+MY_ID = 456 # not okay, type checker will complain
+```
+
+---
+
+# Literal values
+
+```python
+from typing import Literal
+
+primary_color: Literal["red", "blue", "green"] = "red"
+primary_color = "green"
+primary_color = "PINK" # not okay, type checker will complain
+```
+
+<v-click>
+
+Note: probably best just to use an `Enum` in the above example, but you get the point
+
+</v-click>
 
 ---
 
@@ -481,9 +461,60 @@ combinedId = UserId( UserId(123) + UserId(456) ) # resulting type UserId
 
 ---
 
+
 # Generics
 
-Generic function
+Generic types
+
+Generic type constructor
+* Like a function for types
+* Takes a type, and "returns" a new type
+
+---
+
+# Generic Functions
+
+Consistency rather than specificity
+
+```python
+def add(x, y):
+    return x + y
+
+add(1,2) == 3
+add('1', '2') == '12'
+add(1.1, 2.2) == 3.3
+```
+
+`add` has 2 parameters, that may be of type `int`, `float`, or `str`, so long as both are the *same* type
+
+---
+
+# Generic Functions
+
+Annotating generics
+
+```python
+T = TypeVar('T', int, float, str)
+
+def add(x: T, y: T) -> T:
+    return x + y
+
+add(1,2) # ok
+add('1', '2') # ok
+add(1.1, 2.2) # ok
+add(1, 2.2) # ok
+add(1, '2') # not ok - fails type check
+```
+
+For `add(1, 2.2)`, `1` is of type `int`, which is a subtype of `float`, so the generic `T` is calculated to be `float`
+
+For `add(1, '2')`, the only type that the two args have in common is `object` which is not listed in our constraints of `int, float, str`
+
+---
+
+# Generic Functions
+
+Annotating generics
 
 ```python
 from typing import Sequence
@@ -496,7 +527,7 @@ def first(l: Sequence[T]) -> T:
 
 ---
 
-# Generics
+# Generic Classes
 
 User-defined generic types
 
@@ -518,13 +549,40 @@ ds: DataStore[str, int] = DataStore()
 
 ---
 
+# Overloading
+
+Functions supporting multiple different combinations of argument types
+
+```python
+from typing import overload, Optional, List
+
+@overload
+def query_datastore(key: None) -> bool: # True if datastore online
+    ...
+
+@overload
+def query_datastore(key: str) -> Optional[str]: # None if no match
+    ...
+
+@overload
+def query_datastore(key: List[str]) -> List[str]: # Empty list if none match
+    ...
+
+def query_datastore(key):
+    pass # actual implementation
+```
+
+Series of overloads must be followed by exactly one implementation
+
+---
+
 # Structural Subtyping
 
 <br>
 
 [PEP-544](https://peps.python.org/pep-0544/) introduced *structural* typing as opposed to *nominative* typing
 
-*nominative*: `B` is declared to be a subclass of `A`
+*nominative* (by name): `B` is declared to be a subclass of `A`
 
 <div v-click-hide>
 
@@ -547,7 +605,7 @@ call_some_method( B() )
 
 <div v-after>
 
-*structural*: `B` looks and acts like `A`, and is therefore a subclass of `A`
+*structural* (by shape): `B` looks and acts like `A`, and is therefore a subclass of `A`
   * also known as *static duck typing*
 
 ```python
@@ -562,7 +620,7 @@ class B:
 def call_some_method(o: A) -> int:
     return o.some_method()
 
-call_some_method( B() )
+call_some_method( B() ) # python type checker would complain, B is not A
 ```
 </div>
 
@@ -591,6 +649,29 @@ Custom protocols through [Protocol](https://docs.python.org/3.8/library/typing.h
 4) without having to declare itself as a subtype, explicitly
 
 </v-click>
+
+---
+
+# Protocols
+
+Structural subtyping enabled
+
+```python {all|1,3,7,11,14}
+from typing import Protocol
+
+class A(Protocol):
+    def some_method(self) -> int:
+        ...
+
+class B:
+    def some_method(self) -> int:
+        return 0
+
+def call_some_method(o: A) -> int:
+    return o.some_method()
+
+call_some_method( B() ) # okay, type checker no longer complains
+```
 
 ---
 
