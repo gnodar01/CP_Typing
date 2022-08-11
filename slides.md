@@ -114,6 +114,7 @@ b: Integer
 <!--
 * Invariance relationships can be counterintuitive
 
+```
 # should accept type List[Float], including subtypes
 def append_pi(l: List[Float]):
     l.append(pi)
@@ -128,6 +129,7 @@ append_pi(int_list)
 int_list[-1] << 2
 
 # but it doesn't, it breaks
+```
 -->
 
 ---
