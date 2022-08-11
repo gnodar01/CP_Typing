@@ -1,10 +1,22 @@
 ---
 download: true
+title: Typed CellProfiler
 ---
 
 # Typed CellProfiler
 
 Incremental type annotations in CellProfiler
+
+<!--
+* Proposal for introducing type annotations into CP
+* Not a comprehensive overview of type theory
+* In large part, tutorial of Types
+  * Particularly types on top of a dynamically typed language
+    * As opposed to C, Java, ...
+  * Particualrly how it works in Python
+    * As opposed to TypeScript for JavaScript
+* Even if familiar with types, works a bit different in Python
+-->
 
 ---
 
@@ -33,11 +45,20 @@ Defining Types:
 ul { font-size: 15px; }
 </style>
 
+<!--
+* A definition of types (of many)
+  * Predates computers
+  * Goes back to beginning of 20th century (Russell)
+  * Mathematical Logic
+  * Ranges from very theoretical, to very practical
+* A Pythonic definition of types
+-->
+
 ---
 
 # Subtypes
 
-<br>
+A hierarchy of types
 
 Every Type is a Subtype of itself
 
@@ -71,6 +92,13 @@ b: Integer
 * There are some values of `a` not in the set of values of `b`
 * There are functions `b` has that `a` doesn't (e.g. bitwise shifts)
 
+<!--
+* Type correctness/incorrectness is all inferred outside of runtime, with static analysis
+  * Can gaurantee certain kinds of bad behaviours won't occur
+  * Cannot gaurantee everything is indeed bad
+  * Suffers from decidibility problem, let's not get into it...
+-->
+
 ---
 
 # Subtypes
@@ -82,6 +110,25 @@ b: Integer
 * set of functions of `List[Float]` are **NOT** contained in the set of functions of `List[Int]`
   * `append_float()`
 * *invariance* relationship
+
+<!--
+* Invariance relationships can be counterintuitive
+
+# should accept type List[Float], including subtypes
+def append_pi(l: List[Float]):
+    l.append(pi)
+
+# assume List[Int] is subtype of List[Float]
+int_list: List[Int] = [1, 2, 3]
+
+# then append_pi should accept
+append_pi(int_list)
+
+# and this should work on List[Int]
+int_list[-1] << 2
+
+# but it doesn't, it breaks
+-->
 
 ---
 
@@ -120,6 +167,12 @@ Incorporates Gradual Typing
 * Formal work by Jeremy Siek and Walid Taha in 2006
 * Allows parts of a program to be dynamically typed and other parts to be statically typed
 
+<!--
+* No need to cover much of this
+* It's pretty recent
+* It incorporates gradual typing
+-->
+
 ---
 
 # Gradual Typing
@@ -138,6 +191,10 @@ Dynamic **and** static typing
 No "overhaul" necessary
 
 Type as you go, when desired, only to aid readability and understanding
+
+<!--
+* Okay, some runtime implications of the typing module, but negligible
+-->
 
 ---
 
@@ -159,6 +216,10 @@ Therefore, `Any` is the set of all values, and the set of all functions on those
 * Both top and bottom of type hierarchy
 * *Dynamic type*
 * Most things are `Any` unless explicitly annotated otherwise
+
+<!--
+* Some types inferred from type checker even without explicit annotation
+-->
 
 ---
 
@@ -191,6 +252,13 @@ Increased readability
 * New contributors more easily able to understand what a method does, and how to reuse it
 * Refactoring is easier
 
+<!--
+* Without types, it's common to still have types in the form of docstrings
+  * Forget to change on refactors
+  * Have to use conventions, no way to enforce
+  * Not ammenable to automatic type checking
+-->
+
 ---
 
 # Motivation
@@ -203,6 +271,10 @@ Type checkers built into popular IDEs
 * Code completion
 * Error highlighting
 * Go to definition
+
+<!--
+* Testing is obviously still necessary
+-->
 
 ---
 
@@ -800,5 +872,3 @@ Stub files for type definitions
 * [Dropbox - our journey to type checking 4 million lines of Python](https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python)
 * [Gradual Typing](https://wphomes.soic.indiana.edu/jsiek/what-is-gradual-typing/)
 * [How to enable Python type checking in VSCode](https://www.emmanuelgautier.com/blog/enable-vscode-python-type-checking)
-
-
