@@ -1,3 +1,7 @@
+---
+download: true
+---
+
 # Typed CellProfiler
 
 Incremental type annotations in CellProfiler
@@ -355,20 +359,18 @@ Note: probably best just to use an `Enum` in the above example, but you get the 
 
 # Type Defintions and Aliases
 
-```python
+```python {3-5|6-9|11|3-5,16,20|7-8,17,21|all}
 from typing import List, Tuple, NewType
 
 Protocol   = NewType('Protocol', str)  # type definition
 Domain     = NewType('Domain', str)
 Port       = NewType('Port', int)
 Host       = Tuple[Protocol, Domain, Port]  # type alias
-
 UserId     = int | str
 Creds      = Tuple[UserId, str]
-
 Connection = Tuple[Host, Creds]
 
-def connect(connections: List[Connection]):
+def connect(connections: List[Connection]): # List[Tuple[Tuple[str, str, int], Tuple[int|str, str]]
     pass
 
 connect([
@@ -381,7 +383,6 @@ connect([
         (456, "admin")
     )
 ])
-
 ```
 
 ---
